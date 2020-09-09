@@ -128,8 +128,12 @@ def bulk_search(**kwargs):
                         auth = (APIKEY, ''),\
                         data = kwargs)
 
-    data = response.json()['items']
 
+    try :
+        data = response.json()['items']
+    except:
+        data = response.json()
+        return data
     return pd.DataFrame(data)
 
 
