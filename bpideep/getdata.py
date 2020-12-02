@@ -10,6 +10,7 @@ from dotenv import load_dotenv, find_dotenv
 import os
 import json
 
+import re
 
 
 def company_tolist(id_csv_file):
@@ -112,11 +113,15 @@ def getbatchdata(company_id_list, fields_list):
                         url = f'{URL}/companies/batch?ids={companies_string}&fields={fields_string}',\
                         auth = (APIKEY, '')
                         )
+
     try :
         data = response.json()['items']
     except:
-        data = response.json()
-        return data
+        message = response.json()['message']
+        problem_id = re.search(r"\d+", message).group(0)
+        print(f'id {problem_id} could not be retrieved, relaunching batch without it')
+        company_id_list.remove(problem_id)
+        return getbatchdata(company_id_list, fields_list)
 
     return pd.DataFrame(data)
 
@@ -310,10 +315,20 @@ if __name__ == "__main__":
 
     import sys
 
+
     first_arg = sys.argv[1]
     second_arg = sys.argv[2]
     third_arg = sys.argv[3]
     fourth_arg = sys.argv[4]
 
+    """
+    first_arg = 'deeptech.csv'
+    second_arg = 'non_deeptech.csv'
+    third_arg = 'almost_deeptech.csv'
+    fourth_arg = 'fields_list.txt'
+    """
+
     company_dict = getjson(first_arg, second_arg, third_arg)
     data = getfulldata(company_dict, fourth_arg)
+
+
