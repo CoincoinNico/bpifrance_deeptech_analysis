@@ -137,7 +137,9 @@ def companies_technical_stats(df_people):
 def open_founder_profile_files():
     """A function that opens and concatenate the csv files resulting from scrapping individual founder profiles.
     The files should be stored in '/bpifrance_deeptech_analysis/scraping_data/founder_files/'"""    
-    path = os.path.join(os.path.dirname(__file__),'scraping_data/founder_files/')
+    path = os.path.join(os.path.dirname(__file__),'/scraping_data/founder_files/')
+    #if in a notebook use instead:
+    # path = r'../bpideep/scraping_data/founders_files'
     all_files = glob.glob(path + "/*.csv")
     li = []
     for filename in all_files:
@@ -169,16 +171,16 @@ def inline_profile(df_profile):
     #This loop creates new columns corresponding and inserts data (5 columns for experience, 5 for education and 5 for types)
     # It loops through each category one by one
     for category in categories:
-        subdf = profile.dropna(subset=[category])
+        subdf = df_profile.dropna(subset=[category])
         subdf.reset_index(inplace = True, drop = True)
         #Drop all the lines which correspond to other categories
-        subdf.drop(subdf.columns.difference(fields[item]), 1, inplace=True)
+        subdf.drop(subdf.columns.difference(fields[category]), 1, inplace=True)
         items = subdf.shape[0]
         # A maximum of 5 data entry are transcribed by category
         scope = min(items, 5)
         if scope > 0:
             for i in range(1, scope):
-                for field in fields[item]:
+                for field in fields[category]:
                     #Create new columns and enter corresponding data
                     subdf[f'{field}_{i+1}'] = subdf.loc[i, field]
             #Only keep the first line of the DF (which has all the info)
@@ -201,7 +203,7 @@ def build_founders_dataframe(df_founders_raw):
        'degree_5', 'field_5', 'type', 'amount', 'text_content', 'type_2',
        'amount_2', 'text_content_2','type_3','amount_3', 'text_content_3','type_4',
        'amount_4', 'text_content_4','type_5','amount_5', 'text_content_5']
-    df_in_line = pd.DataFrame(columns = in_line_columns)
+    df_founders = pd.DataFrame(columns = in_line_columns)
     
     # Generate the list of profile urls
     urls = df_founders_raw['profile-href'].unique()
@@ -217,7 +219,7 @@ def build_founders_dataframe(df_founders_raw):
 
 
 
-def founder_from_institutes(url):
+def founder_from_institutes(row):
     """This function determines whether a founder has worked in a research institute such
     as the CNRS, CEA, etc...
     Enables a mapping to be applied on 'df_founders':
@@ -240,11 +242,11 @@ def founder_from_institutes(url):
                     'commissariat', 'hospitalier', 'Institut national de la recherche agronomique']
     #A founder having done a postdoc can be a strong indicator of a deeptech, so search for that.
     title_words = ['postdoc', 'post doc']
-    profile = df_in_line.loc[df_founders['profile-url']==url]
     count = 0
     #first look for presence of acronyms or institute words in founder experience (commpanies).
     for company in companies:
-        text = profile.loc[0, company]
+        print(company)
+        text = row[company]
         for word in acronyms:
             if re.search(r'\b' + word + r'\b', str(text)):
                 count = 1
@@ -253,7 +255,7 @@ def founder_from_institutes(url):
                 count = 1
     #The look for post_doc in titles
     for title in titles:
-        text = profile.loc[0, title]
+        text = row[title]
         for word in title_words:
             if word in str(text).lower():
                 count = 1
@@ -261,7 +263,7 @@ def founder_from_institutes(url):
 
 
     
-def founder_has_phd(url):
+def founder_has_phd(row):
     """This function determines whether a founder has a PhD degree
     Enables a mapping to be applied on 'df_founders':
     df_founders['founder_has_phd'] = df_founders['profile-href'].apply(founder_has_phd)
@@ -280,26 +282,25 @@ def founder_has_phd(url):
     title_words = ['doctorant', 'phd', 'ph.d']
     titles= ['title']
     for i in range(2,6):
-        companies.append(f"title_{i}")
+        titles.append(f"title_{i}")
     
-    profile = df_in_line.loc[df_in_line['profile-href']==url]
     count = 0
     # first look in education fields (degree)
     for degree in degrees:
-        text = profile.loc[0, degree]
+        text =row[degree]
         for word in degree_words:
             if word in str(text).lower():
                 count = 1
     #Then look in experience fields (title)
     for title in titles:
-        text = profile.loc[0, title]
+        text = row[title]
         for word in title_words:
             if word in str(text).lower():
                 count = 1
     return count
 
 
-def founder_has_patents_publi(url):
+def founder_has_patents_publi(row):
     """This function determines whether has patents or public
     Enables a mapping to be applied on 'df_founders':
     df_founders['founder_has_pat_pub'] = df_founders['profile-href'].apply(founder_has_pat_pub)
@@ -310,44 +311,37 @@ def founder_has_patents_publi(url):
         types.append(f"type_{i}")
     #key words used in profiles.
     intel =['Patent','Publications'] 
-    profile = df_in_line.loc[df_in_line['profile-url']==url]
     count = 0
     for item in types:
-        text = profile.loc[0, item]
+        text = row[item]
         for word in intel:
             if word == str(text):
                 count = 1
-                print(text)
     return count
 
-def technical_founders(url):
+def technical_founders(row):
     """A function that determines whether a founder is technical.
     This is then used to update the % of technical employees in the company
     dataframe (it can be very important for small companies where + or - 1 
     technical employee can strongly impact the % of technical"""
-    profile = df_features.loc[df_features['profile-href']==url]
-    profile.reset_index(inplace = True, drop = True)
-    #if the founder was already flagged as technical, then return 1
-    if profile.loc[0,'technical'] > 0:
-        return 1
     # Then return 1 of the founder worked in academia or has a phd.
-    elif profile.loc[0,'founder_from_institute'] > 0:
+    if row['founder_from_institute'] > 0:
         return 1
-    elif profile.loc[0,'founder_has_phd'] > 0:
+    elif row['founder_has_phd'] > 0:
         return 1
     else :
         return 0
 
 def generate_founders_features(df_founders):
     """Function that build new features by mapping feature generating functions on the dataframe"""
-    df_founders['founder_has_phd'] = df_founders['profile-href'].apply(founder_has_phd)
-    df_founders['founder_from_institute'] = df_founders['profile-href'].apply(founder_from_institutes)
-    df_founders['founder_pat_pub'] = df_founders['profile-href'].apply(founder_has_patents_publi)
-    df_founders['technical_founder'] = df_founders['profile-href'].apply(technical_founders)
+    df_founders['founder_has_phd'] = df_founders.apply(founder_has_phd, axis=1)
+    df_founders['founder_from_institute'] = df_founders.apply(founder_from_institutes, axis=1)
+    df_founders['founder_pat_pub'] = df_founders.apply(founder_has_patents_publi, axis=1)
+    df_founders['technical_founder'] = df_founders.apply(technical_founders, axis=1)
     return df_founders
 
 
-def update_technical(df_employees, df_founders)
+def update_technical(df_employees, df_founders):
     """""A function that updates the feature "technical" of the full employee dataframe
     for founders so that technical founders are marked as a 1.
     This is then used to update the % of technical employees in the company
@@ -362,6 +356,7 @@ def update_technical(df_employees, df_founders)
     #The 'technical' feature is updated with a 1 if either the technical or technical
     #founder features are equal to 1:
     df_employees_full['technical'] = df_employees_full[["technical", 'technical_founder']].max(axis=1)
+    df_employees_full.drop(columns=['Unnamed: 0'], inplace=True)
     
     return df_employees_full
 
@@ -379,7 +374,10 @@ def companies_technical_stats_with_founders_features(df_employees_full):
     return df_companies_stats_with_founders_features
 
 def merge_initial_companies_with_founder(deal_room_df, df_companies_stats_with_founders_features):
-    df_companies_with_employee_features = deal_room_df.merge(df_companies_stats_with_founders_features, on='linkedin_url', how='right')
+    """"A function that creates and save a dataframe with all features from dealroom 
+    and from employee profile scraping."""
+    df_companies_with_employee_features = deal_room_df.merge(df_companies_stats_with_founders_features, on='linkedin_url', how='left')
+    # If used for a jupyter notebook, use "path = r'../bpideep/scraping_data/result_files/'""
     path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/')
     df_companies_with_employee_features.to_csv(path + 'companies_with_employee_features.csv')
     return df_companies_with_employee_features
