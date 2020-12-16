@@ -47,10 +47,11 @@ class Trainer():
         pipemodel = Pipeline(steps=[
                             ('featureencoder', FeatEncoder()),
                             ('features', features_transformer),
-                            ('model', LogisticRegression( C = 1.52, penalty = 'l2'))]
+                            ('model', LogisticRegression(C = 1.52, penalty = 'l1', solver= 'liblinear'))]
                             # initial version was: solver=lbfgs (default), penalty = 'l1'
                             # error: "Solver lbfgs supports only 'l2' or 'none' penalties, got l1 penalty."
                             # therefore changing penalty to 'l2'
+                            # keep l1 : ‘liblinear’ and ‘saga’ also handle L1 penalty
                             )
         self.pipeline = pipemodel
 
@@ -77,4 +78,4 @@ if __name__ == "__main__":
 
     t = Trainer(X, y)
     t.train()
-    t.save_model()
+    #t.save_model()

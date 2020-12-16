@@ -12,7 +12,11 @@ groupama/data/base_pno.*
 /raw_data/
 .env
 rawdata/
-notebooks/
-/notebooks/
 bpideep/config.json
 .env
+
+
+*/.ipynb_checkpoints/*
+*.xlsx
+*.json
+/*.ipynb

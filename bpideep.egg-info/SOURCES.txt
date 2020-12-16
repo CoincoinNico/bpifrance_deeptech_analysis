@@ -7,27 +7,72 @@ setup.py
 .github/workflows/pythonpackage.yml
 bpideep/.DS_Store
 bpideep/.env
+bpideep/EmployeeImputer.py
 bpideep/__init__.py
-bpideep/cleaning.py
+bpideep/encoders.py
 bpideep/feateng.py
-bpideep/filters.py
+bpideep/getcleandata.py
 bpideep/getdata.py
+bpideep/getpatent.py
+bpideep/labtrainer.py
 bpideep/lib.py
-bpideep/team.py
+bpideep/list.py
+bpideep/timetrainer.py
 bpideep/trainer.py
 bpideep/utils.py
 bpideep.egg-info/PKG-INFO
 bpideep.egg-info/SOURCES.txt
 bpideep.egg-info/dependency_links.txt
 bpideep.egg-info/not-zip-safe
+bpideep.egg-info/requires.txt
 bpideep.egg-info/top_level.txt
 bpideep/data/.DS_Store
+bpideep/data/NUL.csv
+bpideep/data/X_test.csv
+bpideep/data/X_test2.csv
+bpideep/data/X_test3.csv
+bpideep/data/X_train.csv
+bpideep/data/X_train2.csv
+bpideep/data/X_train3.csv
 bpideep/data/almost_deeptech.csv
 bpideep/data/companies.json
+bpideep/data/companies_filters.json
 bpideep/data/companies_filters.txt
 bpideep/data/deeptech.csv
+bpideep/data/extra_features.csv
+bpideep/data/extra_features_v2.csv
 bpideep/data/fields_list.txt
+bpideep/data/id_zip.csv
+bpideep/data/launch_year.xlsx
+bpideep/data/matching_industry.xlsx
+bpideep/data/missing_employee_count.csv
+bpideep/data/missing_employee_count0.csv
+bpideep/data/missing_launchyear_growthstage.csv
 bpideep/data/non_deeptech.csv
+bpideep/data/output.xlsx
+bpideep/data/patents.csv
+bpideep/data/y_pred1.csv
+bpideep/data/y_pred2.csv
+bpideep/data/y_pred3.csv
+bpideep/data/y_test.csv
+bpideep/data/y_test2.csv
+bpideep/data/y_test3.csv
+bpideep/data/y_train.csv
+bpideep/data/y_train2.csv
+bpideep/data/y_train3.csv
+bpideep/data/New train cross val/.DS_Store
+bpideep/data/Old train cross val/X_test.csv
+bpideep/data/Old train cross val/X_test2.csv
+bpideep/data/Old train cross val/X_test3.csv
+bpideep/data/Old train cross val/X_train.csv
+bpideep/data/Old train cross val/X_train2.csv
+bpideep/data/Old train cross val/X_train3.csv
+bpideep/data/Old train cross val/y_test.csv
+bpideep/data/Old train cross val/y_test2.csv
+bpideep/data/Old train cross val/y_test3.csv
+bpideep/data/Old train cross val/y_train.csv
+bpideep/data/Old train cross val/y_train2.csv
+bpideep/data/Old train cross val/y_train3.csv
 bpideep/node_modules/dotenv/CHANGELOG.md
 bpideep/node_modules/dotenv/LICENSE
 bpideep/node_modules/dotenv/README.md
@@ -41,8 +86,15 @@ bpideep/node_modules/dotenv/types/test.ts
 bpideep/node_modules/dotenv/types/tsconfig.json
 bpideep/node_modules/dotenv/types/tslint.json
 bpideep/rawdata/.DS_Store
+bpideep/rawdata/X_test_after2010.xlsx
+bpideep/rawdata/X_train_after2010.xlsx
 bpideep/rawdata/data.csv
-notebooks/base_df.csv
+bpideep/rawdata/data2020-12-03.csv
+bpideep/rawdata/data2020-12-03_with_corrections.csv
+bpideep/rawdata/newdata_x.csv
+bpideep/rawdata/newdata_y.csv
+bpideep/rawdata/y_test_after2010.xlsx
+bpideep/rawdata/y_train_after2010.xlsx
 scripts/bpideep-run
 tests/__init__.py
 tests/lib_test.py

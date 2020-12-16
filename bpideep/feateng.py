@@ -5,6 +5,8 @@ import os
 import numpy as np
 from bpideep.list import list_industries,list_technologies,list_tags,list_background_team,list_degree_team,list_income_streams,list_investors_name,list_investor_type
 
+from bpideep.utils import simple_time_tracker
+
 data_path = os.path.join(os.path.dirname(__file__), "data")
 patents_df = pd.read_csv(f"{data_path}/patents.csv")
 IDZIP_DF = pd.read_csv(f"{data_path}/id_zip.csv", delimiter = ';')
@@ -254,7 +256,7 @@ def feat_eng_cols(data):
     '''
 
     # new features in data as columns
-    data['background'] = data['team'].map(lambda x:background(x))
+    #data['background'] = data['team'].map(lambda x:background(x))
     data['degree'] = data['team'].map(lambda x:degree(x))
     data['doctor_yesno'] = data['degree'].map(lambda x: degree_quant(x))
     data['funding_employees_ratio'] = funding_amounts_employees(data)
@@ -274,7 +276,7 @@ def feat_eng_cols(data):
 
 
     # encoded features
-    background_team_encoded_df = encoder(data, 'background')
+    #background_team_encoded_df = encoder(data, 'background')
     degree_team_encoded_df = encoder(data,'degree')
     industries_encoded_df = encoder(data,'industry')
     income_streams_encoded_df = encoder(data,'income_streams')
@@ -289,8 +291,13 @@ def feat_eng_cols(data):
     # industries_retained = tags_reduction(industries_encoded_df, threshold = 0)
     # investors_name_retained = tags_reduction(investors_name_encoded_df, threshold = 0)
 
+
+    #batch502 : include some row into the output for analysis purpose
+    #analysis_info = ["name", "deep_or_not", "target"]
+
     # to concat
     concat_df = pd.concat([
+                        #data[analysis_info],
                         data[['id',
                             'doctor_yesno',
                             'funding_employees_ratio',
@@ -298,8 +305,9 @@ def feat_eng_cols(data):
                             'has_super_founder',
                             'stage_age_ratio'
                             ]],
+
                         tags_encoded_df,
-                        background_team_encoded_df,
+                        #background_team_encoded_df,
                         industries_encoded_df,
                         degree_team_encoded_df,
                         income_streams_encoded_df,
@@ -310,6 +318,7 @@ def feat_eng_cols(data):
 
     # merge concat_df with patents to get patents info
     concat_df = concat_df.merge(patents_df[['nb_patents', 'id']], on = 'id', how = 'left')
+
 
     # we keep a trace of all features list (by group of features)
     simple_features = ['doctor_yesno',
@@ -330,7 +339,7 @@ def feat_eng_cols(data):
         for col in no_tags:
             concat_df[col] = 0
 
-    kept_cols = simple_features + kept_tags
+    kept_cols = ["id"] + simple_features + kept_tags #+ analysis_info
 
     return concat_df[kept_cols], kept_cols
 

@@ -1,0 +1,15 @@
+setuptools
+pandas
+Flask
+Flask-Cors
+gunicorn
+numpy
+matplotlib
+requests
+google-cloud-bigquery
+datetime
+scikit-learn
+joblib
+python-dotenv
+typed-ast
+ipdb
