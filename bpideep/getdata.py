@@ -6,11 +6,14 @@ import pandas as pd
 import numpy as np
 import requests
 from dotenv import load_dotenv, find_dotenv
+import datetime
 
 import os
 import json
 
 import re
+
+
 
 
 def company_tolist(id_csv_file):
@@ -166,7 +169,7 @@ def getfulldata(company_dict, fields_txt_file):
     # creating the 'target' column
     deep_df['target'] = 1
     nondeep_df['target'] = 0
-    almostdeep_df['target'] = 0
+    almostdeep_df['target'] = 0.5
 
     # concatenates the three dataframes
     data = pd.concat([deep_df, nondeep_df, almostdeep_df], axis = 0, ignore_index = True)
@@ -178,8 +181,11 @@ def getfulldata(company_dict, fields_txt_file):
     X = data.drop(columns = 'target')
     y = data['target']
 
+    current_date_and_time = datetime.datetime.now()
+    current_date_and_time_string = str(current_date_and_time)[:10]
+
     output_path = os.path.join(os.path.dirname(__file__), "rawdata")
-    data.to_csv(f'{output_path}/data.csv', index = False)
+    data.to_csv(f'{output_path}/data{current_date_and_time_string}.csv', index = False)
 
     return X, y
 
