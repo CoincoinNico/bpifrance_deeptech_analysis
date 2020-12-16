@@ -4,6 +4,7 @@ in this module, click on 'create news site map', then 'import site map' and past
 Warning: if the html structure of targeted pages changes, these scripts may need to be tailored"""
 
 import pandas as pd
+import os
 
 #List of elements to scrape on company people page: employee profile link, title, name
 #Output: table with for each individual: company name, company id, employee profile link, title, name
@@ -19,19 +20,24 @@ class str2(str):
 """WARNING: before scraping, verify the number of employees of target companies. Scraping
 a 2000 employee company will take more than 30min"""
 
-def make_scripts_company_people():
+def make_script_company_scraping(df_dealroom_data, batch_size):
     """This function generates scraping scripts to be used on webscraper, to scrape people 
     names, titles and profile_urls for a given company. 
     X should be a dataframe with urls in a column 'linkedin_url', as per data provided by
     dearlroom. Scraping takes about 1min per company"""
-    X = pd.read_csv('../bpideep/rawdata/data2020-12-03.csv')
-    company_count = X.shape[0]
-    batches = int(company_count/100)
-    urls = X[['linkedin_url']]
+    # Optional: the csv can be opened in the function, choose one of the two paths
+    # depending on usage.
+    # Path to open in notebooks: "df_dealroom data = pd.read_csv('../bpideep/rawdata/data.csv')""
+    # Path to open in from location of this module:
+    # "Path = os.path.join(os.path.dirname(__file__),'rawdata/') ""
+    # "df_dealroom data = pd.read_csv(path + 'datacsv')
+    company_count = df_dealroom_data.shape[0]
+    batches = int(company_count/batch_size)
+    urls = df_dealroom_data[['linkedin_url']]
     for i in range(0, batches+1):
         name = f"script_batch_{i}"
         batch = []
-        for j in range (i*100, (i+1)*100):
+        for j in range (i*batch_size, (i+1)*batch_size):
             if j > company_count-1:
                 break
             else:
@@ -46,17 +52,17 @@ def make_scripts_company_people():
                         {{"id":"title","type":"SelectorText","parentSelectors":["container"],"selector":"div.lt-line-clamp--multi-line","multiple":false,"regex":"","delay":0}},\
                         {{"id":"profile","type":"SelectorLink","parentSelectors":["container"],"selector":"a.link-without-visited-state","multiple":false,"delay":0}}]}}'
         script.replace("\\", "")
-        # The function outputs a string for each batch as a text file
-        path = '../bpideep/scraping_data/scraping_scripts/'
-        with open(path + f"{name}.txt", "w") as text_file:
-            text_file.write(script)
+        # Optional : The function outputs a string for each batch as a text file
+        # path = '../bpideep/scraping_data/scraping_scripts/'
+        # with open(path + f"{name}.txt", "w") as text_file:
+        #     text_file.write(script)
         # Another output is the printed scripts, from which you can copy/paste in webscraper.
         print(name)
         print(script)
     return None
 
 
-def make_scripts_description(X):
+def make_script_company_description(X):
     """This function generates scraping scripts to be used on webscraper, to scrape the 
     description field of companies.
     The loaded data should be a csv with urls in a column 'linkedin_url', as per data provided by
@@ -90,78 +96,100 @@ def make_scripts_description(X):
         print(script)
     return None
 
-def make_technical_profile_lists(X):
-    """Function that generates batches of 80 profile URLs for scrapping via phantombuster"""
-    df_technical = X[X['technical']==1]
-    df_technical = df_technical[~df_technical['profile-href'].isnull()]
-    df_technical.reset_index(inplace = True)
-    df_technical.drop(columns=['index'], inplace=True)
-    counts = df_technical.shape[0]
-    batches = int(counts /80)
-    list_of_lists = []
-    profile_url_list = df_technical['profile-href']
-    for i in range(0, batches+1):
-        path = f"../bpideep/scraping_data/scraping_lists_phantom/"
-        if (i+1)*80>counts:
-            #this route handles the end of the table
-            #First generate list of profile urls 
-            profile = profile_url_list[i*80:]
-            profile.to_csv(path + f"profile_list_{i}.csv" , index = False, header=False)
-            #Then save tuples with profile and company url to use as a key if needed.
-            tupple_list=[]
-            for j in range(counts - i*80):
-                url_tuple = (df_technical.iloc[i*80+j,2], df_technical.iloc[i*80+j,3])
-                tupple_list.append(url_tuple)
-            list_of_lists.append(url_tuple)
-            break
-        else:
-            profile = profile_url_list[i*80:(i+1)*80]
-            profile.to_csv(path + f"profile_list_{i}.csv", index = False, header=False)
-            tupple_list=[]
-            for j in range(80):
-                url_tuple = (df_technical.iloc[i*80+j,2], df_technical.iloc[i*80+j,3])
-                tupple_list.append(url_tuple)
-            list_of_lists.append(tupple_list)    
-    return list_of_lists
+def profile_script_generator(profile_list):
+    """This function generates a webscraper scraping script from a list of LinkedIn profile URLs.
+    It has tages for experience, education and achievements and subtages such as company name, 
+    job title and description, degree, type and number of achievements etc...
+    It is used make_script functions below."""
 
-def make_founders_profile_lists(X):
-    """Function that generates batches of 80 profile URLs for scrapping via phantombuster"""
-    df_founders = X[X['founders']==1]
-    df_founders = df_founders[~df_founders['profile-href'].isnull()]
-    df_founders.reset_index(inplace = True)
-    df_founders.drop(columns=['index'], inplace=True)
-    counts = df_founders.shape[0]
-    batches = int(counts /80)
-    print(counts, batches)
+    script= f'{{"_id":"profiles","startUrl":{profile_list},\
+     "selectors":[\
+    {{"id":"experience_bullets","type":"SelectorElement","parentSelectors":["scroll_top"],\
+     "selector":"section.pv-profile-section__card-item-v2","multiple":true,"delay":0}},\
+    {{"id":"experience_bullet","type":"SelectorElement","parentSelectors":["experience_bullets"],\
+     "selector":"div.justify-space-between","multiple":false,"delay":0}},\
+    {{"id":"title","type":"SelectorText","parentSelectors":["experience_bullet"],\
+     "selector":"h3","multiple":true,"regex":"","delay":0}},\
+    {{"id":"company","type":"SelectorText","parentSelectors":["experience_bullet"],\
+     "selector":"p.pv-entity__secondary-title","multiple":false,"regex":"","delay":0}},\
+    {{"id":"education_bullets","type":"SelectorElement","parentSelectors":["scroll_top"],\
+     "selector":"li.pv-education-entity","multiple":true,"delay":0}},\
+    {{"id":"institution","type":"SelectorText","parentSelectors":["education_bullets"],\
+     "selector":"h3","multiple":false,"regex":"","delay":0}},\
+    {{"id":"degree","type":"SelectorText","parentSelectors":["education_bullets"],\
+     "selector":".pv-entity__degree-name span.pv-entity__comma-item","multiple":false,"regex":"","delay":0}},\
+    {{"id":"field","type":"SelectorText","parentSelectors":["education_bullets"],\
+     "selector":".pv-entity__fos span.pv-entity__comma-item","multiple":false,"regex":"","delay":0}},\
+    {{"id":"exp_description","type":"SelectorText","parentSelectors":["experience_bullet"],\
+     "selector":"p.pv-entity__description","multiple":false,"regex":"","delay":0}},\
+    {{"id":"publications_others","type":"SelectorElement","parentSelectors":["scroll_top"],\
+     "selector":"section.pv-accomplishments-block","multiple":true,"delay":0}},\
+    {{"id":"type","type":"SelectorText","parentSelectors":["publications_others"],\
+     "selector":"h3.pv-accomplishments-block__title","multiple":false,"regex":"","delay":0}},\
+    {{"id":"amount","type":"SelectorText","parentSelectors":["publications_others"],\
+     "selector":"span:nth-of-type(2)","multiple":false,"regex":"","delay":0}},\
+    {{"id":"text_content","type":"SelectorText","parentSelectors":["publications_others"],\
+     "selector":"ul","multiple":false,"regex":"","delay":0}},\
+    {{"id":"scroll_top","type":"SelectorElementScroll","parentSelectors":["_root"],\
+     "selector":"div.profile-detail","multiple":false,"delay":2000}}]}}'
+    return script
+
+
+def make_script_employee_scraping(df_employees, batch_size, founders = False):
+    """Function that generates scripts for scrapping profiles by batches.
+    Also generate a list or urls. It is advised to limit batch size to 100
+    if "founders == True, only founders will be selected for scraping"""    
+    if founders == True:
+        #Select founders within the employee dataframe
+        df_founders = df_employees[df_employees['founder']==1]
+        #Eliminate cells w/o a url for the profile
+        df_founders = df_founders[~df_founders['profile-href'].isnull()]
+        df_founders.reset_index(inplace = True)
+        df_founders.drop(columns=['index'], inplace=True)
+        df = df_founders.copy()
+    else: 
+        df_employees = df_employees[~df_employees['profile-href'].isnull()]
+        df_employees.reset_index(inplace = True)
+        df_founders.drop(columns=['index'], inplace=True)
+        df = df_employees.copy()
+    
+    #Initilize number of batches
+    counts = df.shape[0]
+    batches = int(counts /batch_size)
+    #initiliaze lists, including a list of tupples including company linkedinURL and profile URL
+    #These tupples may be useful in case the link between employee and company is lost.
     full_tupple_list = []
     full_profile_list = []
-    profile_url_list = df_founders['profile-href']
+
     for i in range(0, batches+1):
-        path = f"../bpideep/scraping_data/scraping_lists_phantom/"
-        if (i+1)*80>counts:
-            print('end')
-            #this route handles the end of the table
-            #First generate list of profile urls 
-            profile_list = df_founders['profile-href'][i*80:]
-            profile_list.apply(str2)
-            profile_list.to_csv(path + f"profile_list_{i}.txt" , index = False, header=False)
-            #Then save tuples with profile and company url to use as a key if needed.
+        #this route handles the end of the table
+        if (i+1)*batch_size>counts:
+            #Generates a list of urls and tuples with both profile and company url to use as a key if needed.
             tupple_list=[]
-            base_list=[]
+            profile_list=[]
             for j in range(counts - i*80):
-                url_tuple = (df_founders.iloc[i*80+j,2], df_founders.iloc[i*80+j,3])
+                url_tuple = (df.iloc[i*80+j,2], df.iloc[i*80+j,3])
                 tupple_list.append(url_tuple)
-                base_list.append(str2(df_founders.iloc[i*80+j,2]))
+                profile_list.append(str2(df.iloc[i*80+j,2]))
+        
+        #This is the main route    
         else:
-            profile_list = profile_url_list[i*80:(i+1)*80]
-            profile_list.apply(str2)
-            profile_list.to_csv(path + f"profile_list_{i}.txt", index = False, header=False)
+            #Generates a list of urls and tuples with both profile and company url to use as a key if needed.
             tupple_list=[]
-            base_list=[]
+            profile_list=[]
             for j in range(80):
-                url_tuple = (df_founders.iloc[i*80+j,2], df_founders.iloc[i*80+j,3])
+                url_tuple = (df.iloc[i*80+j,2], df.iloc[i*80+j,3])
                 tupple_list.append(url_tuple)
-                base_list.append(str2(df_founders.iloc[i*80+j,2]))
+                profile_list.append(str2(df.iloc[i*80+j,2]))
+        #finally print and saves script for webscraper
+        script = profile_script_generator(profile_list)
+        print(f"script_batch_{i}")
+        print(script)
+        path = os.path.join(os.path.dirname(__file__),'scraping_data/scraping_scripts/')
+        with open(path + f"script_batch_{i}.txt", "w") as text_file:
+            text_file.write(script)
+        #Build list of lists and tupples
         full_tupple_list.append(tupple_list)
-        full_profile_list.append(base_list)
+        full_profile_list.append(profile_list)
     return full_profile_list
+
