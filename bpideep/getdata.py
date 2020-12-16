@@ -6,9 +6,13 @@ import pandas as pd
 import numpy as np
 import requests
 from dotenv import load_dotenv, find_dotenv
+import datetime
 
 import os
 import json
+
+import re
+
 
 
 
@@ -112,11 +116,15 @@ def getbatchdata(company_id_list, fields_list):
                         url = f'{URL}/companies/batch?ids={companies_string}&fields={fields_string}',\
                         auth = (APIKEY, '')
                         )
+
     try :
         data = response.json()['items']
     except:
-        data = response.json()
-        return data
+        message = response.json()['message']
+        problem_id = re.search(r"\d+", message).group(0)
+        print(f'id {problem_id} could not be retrieved, relaunching batch without it')
+        company_id_list.remove(problem_id)
+        return getbatchdata(company_id_list, fields_list)
 
     return pd.DataFrame(data)
 
@@ -161,7 +169,7 @@ def getfulldata(company_dict, fields_txt_file):
     # creating the 'target' column
     deep_df['target'] = 1
     nondeep_df['target'] = 0
-    almostdeep_df['target'] = 0
+    almostdeep_df['target'] = 0.5
 
     # concatenates the three dataframes
     data = pd.concat([deep_df, nondeep_df, almostdeep_df], axis = 0, ignore_index = True)
@@ -173,8 +181,11 @@ def getfulldata(company_dict, fields_txt_file):
     X = data.drop(columns = 'target')
     y = data['target']
 
+    current_date_and_time = datetime.datetime.now()
+    current_date_and_time_string = str(current_date_and_time)[:10]
+
     output_path = os.path.join(os.path.dirname(__file__), "rawdata")
-    data.to_csv(f'{output_path}/data.csv', index = False)
+    data.to_csv(f'{output_path}/data{current_date_and_time_string}.csv', index = False)
 
     return X, y
 
@@ -310,10 +321,20 @@ if __name__ == "__main__":
 
     import sys
 
+
     first_arg = sys.argv[1]
     second_arg = sys.argv[2]
     third_arg = sys.argv[3]
     fourth_arg = sys.argv[4]
 
+    """
+    first_arg = 'deeptech.csv'
+    second_arg = 'non_deeptech.csv'
+    third_arg = 'almost_deeptech.csv'
+    fourth_arg = 'fields_list.txt'
+    """
+
     company_dict = getjson(first_arg, second_arg, third_arg)
     data = getfulldata(company_dict, fourth_arg)
+
+
