@@ -8,6 +8,9 @@ setup.py
 bpideep/.DS_Store
 bpideep/.env
 bpideep/EmployeeImputer.py
+bpideep/GetCleanData.py
+bpideep/New_Trainer.py
+bpideep/NoTransformer.py
 bpideep/__init__.py
 bpideep/encoders.py
 bpideep/feateng.py
@@ -17,6 +20,9 @@ bpideep/getpatent.py
 bpideep/labtrainer.py
 bpideep/lib.py
 bpideep/list.py
+bpideep/process_scraped_data.py
+bpideep/scraping.py
+bpideep/scraping_scripting.py
 bpideep/timetrainer.py
 bpideep/trainer.py
 bpideep/utils.py
