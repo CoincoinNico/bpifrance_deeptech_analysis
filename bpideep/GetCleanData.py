@@ -179,13 +179,22 @@ def fund_investors(x):
 
     for row in range(len(x)):
         if "fund" in x["investors_type"][row] or "investors" in x["investors_type"][row] :
-            x["investors_type"][row] = 1
+            x.loc[row,"investors_type"] = 1
 
         else :
-            x["investors_type"][row] = 0
+            x.loc[row,"investors_type"] = 0
     return x
 
-
+def simple_fund_investors(investors_type_list):
+    '''
+    returns :
+    - 1 if the selected investors are part of the list created by the function investors_type()
+    - 0 if not
+    see fund_investors function documentation for full list of investors
+    '''
+    if "fund" in investors_type_list or "investors" in investors_type_list :
+        return 1
+    return 0
 
 
 def get_clean_data():

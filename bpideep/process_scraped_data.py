@@ -1,4 +1,4 @@
-"""This module contains function used to process data exctracted on companies 
+"""This module contains function used to process data extracted on companies
 and employees to generate features useful to predict the start-up category."""
 
 import glob
@@ -9,7 +9,7 @@ import re
 """A few functions used in process_company_people"""
 
 def strip_at_chez(title):
-    """Function to remove the name of the company from people job title 
+    """Function to remove the name of the company from people job title
     when it is included via 'at or 'chez' keywords"""
     if ' at ' in title:
         return title.split(' at ', 1)[0]
@@ -28,11 +28,11 @@ def technical_people(title):
     #These lists can be adjusted.
     technical_words = ['engineer', 'scientist', 'research', 'r&d', 'phd', 'technician', 'technical',
                     'manufacturing','process','ingénieur', 'machine learning', 'deep learning'
-                   "scientifique", "chercheur", "recherche et développement", "doctorant", 'cto ', 
+                   "scientifique", "chercheur", "recherche et développement", "doctorant", 'cto ',
                        ' cto', 'chief technology officer', 'cso ','supply chain'
                        'Chief Scientific Officer', "technicien", "technique",
                     "data scientist",'data science' 'clinical', 'pharmacien', 'pharmacist',
-                    'clinical trial', 'drug development', 'medical', 'scientific', 'professor', 'gene therapy', 
+                    'clinical trial', 'drug development', 'medical', 'scientific', 'professor', 'gene therapy',
                     'preclinical', 'robotics', 'technique', 'clinique', 'ph.d', 'data analyst', 'pharmacology',
                        'chemist', 'md,', 'physiologi', 'analyst', 'maître de conférences', 'professor']
     excluded_words = ['developer', 'web', 'stack', 'développeur', 'software', 'consultant', 'c++']
@@ -79,7 +79,7 @@ def build_employee_df():
     #loading the data, all csvs must be with same columns/headers.
     #The routine below will load all the csvs and load data into a dataframe
     # path = os.path.join(os.path.dirname(__file__),'scraping_data/companies_people/')
-    path = r'../bpideep/scraping_data/companies_people/' 
+    path = r'../bpideep/scraping_data/companies_people/'
     all_files = glob.glob(path + "/*.csv")
     li = []
     for filename in all_files:
@@ -88,16 +88,16 @@ def build_employee_df():
     df_employee_raw = pd.concat(li, axis=0, ignore_index=True)
 
     # optional: generate a csv from the dataframe
-    # save_path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/')
-    # df_employee_raw.to_csv(save_path + '/employees_raw.csv')
-    
+    #save_path = os.path.join(os.path.dirname(__file__),'scraping_data','result_files','')
+    #df_employee_raw.to_csv(save_path + 'employees_raw.csv')
+
     return df_employee_raw
 
 
 def process_employee_data(df_employee_raw):
     """A function that processes the raw employee dataframe to generate new columns.
     New columns incudes whether the employee is technical, has a phd, or is a founder."""
-    path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/') 
+    path = os.path.join(os.path.dirname(__file__),'scraping_data', 'result_files', '')
     #optional: read from csv file
     # df_employee_raw = pd.read_csv(path + 'employees_raw.csv')
     df_employee = df_employee_raw.copy()
@@ -105,7 +105,7 @@ def process_employee_data(df_employee_raw):
     #Remove "/people" from LinkedIn url (necessary to match linkedin urls to the initial data from dealroom)
     df_employee['company_url'] = df_employee['web-scraper-start-url'].apply(strip_people_from_url)
     df_employee.rename(columns={'company_url':'linkedin_url', 'name':'employee_name'}, inplace=True)
-    
+
     #Generates technical and phd binary columns in the dataframe.
     df_employee['title'] = df_employee['title'].apply(strip_at_chez).apply(lower)
     df_employee['technical'] = df_employee['title'].apply(technical_people)
@@ -117,11 +117,11 @@ def process_employee_data(df_employee_raw):
     #Generate csv
     df_employee.to_csv(path + 'employees_processed.csv')
     return df_employee
-    
+
 def temp_process_people_data():
-    """This function is only used during the LeWagon project 
+    """This function is only used during the LeWagon project
     to compensate for the non_matching urls between newsest dealroom data and the old file """
-    path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/') 
+    path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/')
     df_people = pd.read_csv(path +'employees.csv')
     df_people['title'] = df_people['title'].apply(strip_at_chez).apply(lower)
     #Generates technical and phd binary columns in the dataframe.
@@ -132,24 +132,24 @@ def temp_process_people_data():
 
     #Generate csv
     df_people.to_csv(path +'employee_new.csv')
-    
+
     return df_people
 
 def companies_technical_stats(df_people):
     #Group by company to generate stats
     companies_info = df_people.groupby('linkedin_url', as_index = False ).agg(
                 {'technical': 'mean',
-                'phd': 'sum', 
+                'phd': 'sum',
                 'title':'count'})\
                         .rename(columns={'title':'employee__linkedin_count','phd':'phd_found_linkedin'})
     #Generate csv
-    path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/') 
+    path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/')
     companies_info.to_csv(path + 'companies_info.csv')
     return companies_info
 
 def open_founder_profile_files():
     """A function that opens and concatenate the csv files resulting from scrapping individual founder profiles.
-    The files should be stored in '/bpifrance_deeptech_analysis/scraping_data/founder_files/'"""    
+    The files should be stored in '/bpifrance_deeptech_analysis/scraping_data/founder_files/'"""
     # path = os.path.join(os.path.dirname(__file__),'scraping_data/founders_files/')
     #if in a notebook use instead:
     path = r'../bpideep/scraping_data/founders_files'
@@ -164,7 +164,7 @@ def open_founder_profile_files():
 
 def inline_profile(df_profile):
     """This function tranforms a dataframe containing all information for one founder
-    into a single line dataframe. For instance the csv from scrapping may have 8 lines 
+    into a single line dataframe. For instance the csv from scrapping may have 8 lines
     corresponding to a single person (for instance, 3 experiences, 3 educations, 2 types).
     This function will result in a single line with all the info in columns.
     Works in tandem with build_founder_dataframe to assemble the full founder dataframe founder by founder"""
@@ -211,13 +211,13 @@ def build_founders_dataframe(df_founders_raw):
        'title_2', 'company_2', 'exp_description_2', 'title_3', 'company_3',
        'exp_description_3', 'title_4', 'company_4', 'exp_description_4',
        'title_5', 'company_5', 'exp_description_5', 'institution', 'degree',
-       'field', 'institution_2', 'degree_2', 'field_2', 'institution_3', 'degree_3', 
+       'field', 'institution_2', 'degree_2', 'field_2', 'institution_3', 'degree_3',
         'field_3','institution_4','degree_4', 'field_4','institution_5',
        'degree_5', 'field_5', 'type', 'amount', 'text_content', 'type_2',
        'amount_2', 'text_content_2','type_3','amount_3', 'text_content_3','type_4',
        'amount_4', 'text_content_4','type_5','amount_5', 'text_content_5']
     df_founders = pd.DataFrame(columns = in_line_columns)
-    
+
     # Generate the list of profile urls
     urls = df_founders_raw['profile-href'].unique()
 
@@ -249,7 +249,7 @@ def founder_from_institutes(row):
     for i in range(2,6):
         companies.append(f"title_{i}")
     #lists of words used to determine wheter a founder worked in a research institute.
-    # A SATT is a 'société de transfert de technologie'. Their objective is to help start 
+    # A SATT is a 'société de transfert de technologie'. Their objective is to help start
     #companies from research in academic lab.
     acronyms = ['CEA', 'CNRS', 'INSERM', 'UMR', 'INRA', 'LETI', 'SATT', 'ITE', 'INRIA']
     institute_words = ['centre national de la recherche scientifique',\
@@ -275,28 +275,28 @@ def founder_from_institutes(row):
     return count
 
 
-    
+
 def founder_has_phd(row):
     """This function determines whether a founder has a PhD degree
     Enables a mapping to be applied on 'df_founders':
     df_founders['founder_has_phd'] = df_founders['profile-href'].apply(founder_has_phd)
     Returns 1 or 0."""
-    
+
     #Words used to search for phd
     degree_words = ['phd', 'ph.d', 'doctorat', 'doctor', 'philosophy']
-    
+
     #Make a list of fields to search for degrees
     degrees = ['degree']
     for i in range(2,6):
         degrees.append(f"degree_{i}")
 
-    #Make a list of of words and fields to search for job titles 
+    #Make a list of of words and fields to search for job titles
     #(in case the PhD is indicated in experience and not in education)
     title_words = ['doctorant', 'phd', 'ph.d']
     titles= ['title']
     for i in range(2,6):
         titles.append(f"title_{i}")
-    
+
     count = 0
     # first look in education fields (degree)
     for degree in degrees:
@@ -323,7 +323,7 @@ def founder_has_patents_publi(row):
     for i in range(2,6):
         types.append(f"type_{i}")
     #key words used in profiles.
-    intel =['Patent','Publications'] 
+    intel =['Patent','Publications']
     count = 0
     for item in types:
         text = row[item]
@@ -335,7 +335,7 @@ def founder_has_patents_publi(row):
 def technical_founders(row):
     """A function that determines whether a founder is technical.
     This is then used to update the % of technical employees in the company
-    dataframe (it can be very important for small companies where + or - 1 
+    dataframe (it can be very important for small companies where + or - 1
     technical employee can strongly impact the % of technical"""
     # Then return 1 of the founder worked in academia or has a phd.
     if row['founder_from_institute'] > 0:
@@ -358,7 +358,7 @@ def update_technical(df_employees, df_founders):
     """""A function that updates the feature "technical" of the full employee dataframe
     for founders so that technical founders are marked as a 1.
     This is then used to update the % of technical employees in the company
-    dataframe (it can be very important for small companies where + or - 1 
+    dataframe (it can be very important for small companies where + or - 1
     technical employee can strongly impact the % of technical."""
 
     #new_features['No_people_input'] = new_features['id'].apply(nan_indicator)
@@ -369,24 +369,24 @@ def update_technical(df_employees, df_founders):
     #The 'technical' feature is updated with a 1 if either the technical or technical
     #founder features are equal to 1:
     df_employees_full['technical'] = df_employees_full[["technical", 'technical_founder']].max(axis=1)
-    
+
     return df_employees_full
 
 def companies_technical_stats_with_founders_features(df_employees_full):
     #Group by company to generate stats
     df_companies_stats_with_founders_features = df_employees_full.groupby('linkedin_url', as_index = False ).agg(
                 {'technical': 'mean',
-                'phd': 'sum', 
+                'phd': 'sum',
                 'title':'count',
                 'founder_from_institute':'sum',
-                'founder_has_phd':'sum', 
+                'founder_has_phd':'sum',
                 'founder_pat_pub':'sum',
                 'technical_founder':'sum',
                 }).rename(columns={'title':'employee__linkedin_count','phd':'phd_found_linkedin'})
     return df_companies_stats_with_founders_features
 
 def merge_initial_companies_with_founder(deal_room_df, df_companies_stats_with_founders_features):
-    """"A function that creates and save a dataframe with all features from dealroom 
+    """"A function that creates and save a dataframe with all features from dealroom
     and from employee profile scraping."""
     df_companies_with_employee_features = deal_room_df.merge(df_companies_stats_with_founders_features, on='linkedin_url', how='left')
     # If used for a jupyter notebook, use "path = r'../bpideep/scraping_data/result_files/'""
