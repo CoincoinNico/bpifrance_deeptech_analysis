@@ -383,6 +383,8 @@ def companies_technical_stats_with_founders_features(df_employees_full):
                 'founder_pat_pub':'sum',
                 'technical_founder':'sum',
                 }).rename(columns={'title':'employee__linkedin_count','phd':'phd_found_linkedin'})
+    df_companies_stats_with_founders_features['no_linkedin_data'] =\
+         df_companies_stats_with_founders_features['technical'].map(lambda x: 0 if x>0 else 1)
     return df_companies_stats_with_founders_features
 
 def merge_initial_companies_with_founder(deal_room_df, df_companies_stats_with_founders_features):
