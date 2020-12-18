@@ -25,7 +25,7 @@ KEPT_TAGS = [
 
 TARGET_ZIP = [91, 38, 87, 35, 67]
 
-@simple_time_tracker
+#@simple_time_tracker
 def return_list(data, column):
     list_ = []
     data_ = data[column]
@@ -37,7 +37,7 @@ def return_list(data, column):
     return list_
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def encoder(data, column):
     '''
     encoder function that takes a pandas dataframe (data) \
@@ -64,7 +64,7 @@ def encoder(data, column):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def return_filling(data, column):
     '''
     function that returns features 'presence' for each type \
@@ -88,7 +88,7 @@ def return_filling(data, column):
     print(f'total : {data["return_filling"].value_counts()[1] / len(data)}')
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def background(x):
     '''
     function that extracts info from 'team' column
@@ -105,7 +105,7 @@ def background(x):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def degree(x):
     '''
     function that extracts the degree name from the 'team' column in data
@@ -124,7 +124,7 @@ def degree(x):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def degree_quant(x):
     '''
     function that encodes whether or not a doctor works within the company,
@@ -144,7 +144,7 @@ def degree_quant(x):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def funding_amounts_employees(data):
     '''
     function that performs the ratio between funding and employees
@@ -158,7 +158,7 @@ def funding_amounts_employees(data):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def growth_stage_num(data):
     '''
     function that maps the 'growth stage' as an ordinal feature
@@ -172,7 +172,7 @@ def growth_stage_num(data):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def industries(x):
     '''
     function that extracts info from 'industries' column through mapping
@@ -211,7 +211,7 @@ def investors_type(x) :
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def tags_reduction(encoded_dataframe, threshold = 0.02):
     '''
     function that performs a dimension reduction operation: \
@@ -234,7 +234,7 @@ def substract_date(x):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def return_ratio(x):
     '''
     function that computes the growth stage over years of existance ratio
@@ -247,7 +247,7 @@ def return_ratio(x):
 
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def feat_eng_cols(data):
     '''
     takes a pandas df as input
@@ -364,7 +364,7 @@ def get_stage_age_ratio(data):
     return data['stage_age_ratio']
 
 
-@simple_time_tracker
+#@simple_time_tracker
 def zip_code(data):
     # new features in data as columns
     # import ipdb; ipdb.set_trace()
