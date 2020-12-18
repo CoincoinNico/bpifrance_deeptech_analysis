@@ -5,6 +5,8 @@ import glob
 import pandas as pd
 import os
 import re
+from bpideep.feateng import degree, degree_quant
+import ast
 
 """A few functions used in process_company_people"""
 
@@ -354,6 +356,8 @@ def generate_founders_features(df_founders):
     return df_founders
 
 
+
+
 def update_technical(df_employees, df_founders):
     """""A function that updates the feature "technical" of the full employee dataframe
     for founders so that technical founders are marked as a 1.
@@ -369,6 +373,7 @@ def update_technical(df_employees, df_founders):
     #The 'technical' feature is updated with a 1 if either the technical or technical
     #founder features are equal to 1:
     df_employees_full['technical'] = df_employees_full[["technical", 'technical_founder']].max(axis=1)
+    df_employees_full[['phd_linkedin']]=df_employees_full[['founder_has_phd', 'phd']].max(axis=1)
 
     return df_employees_full
 
@@ -376,25 +381,52 @@ def companies_technical_stats_with_founders_features(df_employees_full):
     #Group by company to generate stats
     df_companies_stats_with_founders_features = df_employees_full.groupby('linkedin_url', as_index = False ).agg(
                 {'technical': 'mean',
-                'phd': 'sum',
+                'phd_linkedin': 'sum',
                 'title':'count',
                 'founder_from_institute':'sum',
                 'founder_has_phd':'sum',
                 'founder_pat_pub':'sum',
                 'technical_founder':'sum',
-                }).rename(columns={'title':'employee__linkedin_count','phd':'phd_found_linkedin'})
+                }).rename(columns={'title':'employee__linkedin_count'})
     df_companies_stats_with_founders_features['no_linkedin_data'] =\
          df_companies_stats_with_founders_features['technical'].map(lambda x: 0 if x>0 else 1)
     return df_companies_stats_with_founders_features
 
+def get_dealroom_phds(row):
+    """This function extracts phds from the dealroom data.
+    After that, the function "merge_initial_companies_with_founder" takes the max
+    between phds found on dealroom and Linkedin (the sum would be too risky because we may count
+    twice."""
+    #First, we need to convert the string into a dictionary
+    team_dict = ast.literal_eval(row['team'])
+    #The we apply the function degree and degree_quant from the module feateng.py
+    degree_team = degree(team_dict)
+    deal_room_phd = degree_quant(degree_team)
+    return deal_room_phd
+
 def merge_initial_companies_with_founder(deal_room_df, df_companies_stats_with_founders_features):
     """"A function that creates and save a dataframe with all features from dealroom
     and from employee profile scraping."""
+    #first we extract phds found on deal room
+    deal_room_df['deal_room_phd'] = deal_room_df.apply(get_dealroom_phds, axis=1)
+    
+    #Then we merge dealrrom data with linkedin data
     df_companies_with_employee_features = deal_room_df.merge(df_companies_stats_with_founders_features, on='linkedin_url', how='left')
+    
+    #Add the column indicating the absence of data from linkedin
+    df_companies_with_employee_features['no_linkedin_data'] =\
+         df_companies_with_employee_features['technical'].map(lambda x: 0 if x>0 else 1)
+    
+    #Make a column with the max of phds found on dealroom and linkedin (adding could lead to double counting)
+    df_companies_with_employee_features[['phd_total']]=\
+        df_companies_with_employee_features[['phd_linkedin', 'deal_room_phd']].max(axis=1)
+    
+    # Save as csv
     # If used for a jupyter notebook, use "path = r'../bpideep/scraping_data/result_files/'""
     path = os.path.join(os.path.dirname(__file__),'scraping_data/result_files/')
     df_companies_with_employee_features.to_csv(path + 'companies_with_employee_features.csv')
+    
     return df_companies_with_employee_features
-
+  
 
 
