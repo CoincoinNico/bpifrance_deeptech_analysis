@@ -195,7 +195,7 @@ def inline_profile(df_profile):
             for i in range(1, scope):
                 for field in fields[category]:
                     #Create new columns and enter corresponding data
-                    subdf[f'{field}_{i+1}'] = subdf.loc[i, field]
+                    subdf.loc[:,f'{field}_{i+1}'] = subdf.loc[i, field]
             #Only keep the first line of the DF (which has all the info)
             first_line = subdf.iloc[:1]
             #Join the DF to the DF initialized with the profile URL

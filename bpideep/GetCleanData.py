@@ -199,8 +199,11 @@ def simple_fund_investors(investors_type_list):
 
 def get_clean_data():
     """
-    GetData.get_data() is a function that returns a clean dataset which is already saved in the folder 'rawdata'
+    GetData.get_data() is a function that returns a clean dataset which is then saved in the folder 'rawdata'
     (imputing missing values thanks to manual imputing, LinkedIn, and creating new features)
+    Note: To use the function GetCleanData.get_clean_data(), don't forget to save the csv files
+    (for the patents and LinkedIn data) in the folder "data", and replace the name of the csv
+    if different from the name written in the function.
     """
 
     #1. Use the function Getfulldata to get an updated dataset from Dealroom

@@ -78,4 +78,6 @@ if __name__ == "__main__":
 
     t = Trainer(X, y)
     t.train()
+
+    #uncomment if you want the new model savec
     #t.save_model()
