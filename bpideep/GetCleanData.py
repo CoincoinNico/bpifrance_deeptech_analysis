@@ -178,7 +178,7 @@ def fund_investors(x):
 
 
     for row in range(len(x)):
-        if "fund" in x["investors_type"][row] or "investors" in x["investors_type"][row] :
+        if "fund" in x.loc[row,"investors_type"] or "investors" in x.loc[row,"investors_type"] :
             x.loc[row,"investors_type"] = 1
 
         else :
@@ -201,9 +201,12 @@ def get_clean_data():
     """
     GetData.get_data() is a function that returns a clean dataset which is then saved in the folder 'rawdata'
     (imputing missing values thanks to manual imputing, LinkedIn, and creating new features)
-    Note: To use the function GetCleanData.get_clean_data(), don't forget to save the csv files
-    (for the patents and LinkedIn data) in the folder "data", and replace the name of the csv
-    if different from the name written in the function.
+    Note: To use the function GetCleanData.get_clean_data(), copy the csv files
+    (for the patents and LinkedIn data) in the folder "bpideep/data".
+    You will find all the files to copy in the GoogleDrive
+    https://drive.google.com/drive/folders/1PJYZ9hHrgyLLVS8mhweoytEKgQRAeLT6
+    in the folder "to copy in raw_data"
+    Replace the name of the csv if different from the name written in the function.
     """
 
     #1. Use the function Getfulldata to get an updated dataset from Dealroom
