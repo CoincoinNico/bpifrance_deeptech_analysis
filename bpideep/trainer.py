@@ -9,8 +9,11 @@ from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.metrics import classification_report
 import numpy as np
 import joblib
-# import pandas as pd
+import os
 
+from os.path import join
+from dotenv import load_dotenv
+from bpideep.utils import simple_time_tracker
 
 class Trainer():
 
@@ -22,7 +25,7 @@ class Trainer():
         self.X = X
         self.y = y
 
-
+    @simple_time_tracker
     def set_pipeline(self):
         '''
         create the pipeline and logisticregression model
@@ -44,16 +47,20 @@ class Trainer():
         pipemodel = Pipeline(steps=[
                             ('featureencoder', FeatEncoder()),
                             ('features', features_transformer),
-                            ('model', LogisticRegression(penalty = 'l1', C = 1.52))]
+                            ('model', LogisticRegression(C = 1.52, penalty = 'l1', solver= 'liblinear'))]
+                            # initial version was: solver=lbfgs (default), penalty = 'l1'
+                            # error: "Solver lbfgs supports only 'l2' or 'none' penalties, got l1 penalty."
+                            # therefore changing penalty to 'l2'
+                            # keep l1 : ‘liblinear’ and ‘saga’ also handle L1 penalty
                             )
         self.pipeline = pipemodel
 
-
+    @simple_time_tracker
     def train(self):
         self.set_pipeline()
         self.pipeline.fit(self.X, self.y)
 
-
+    @simple_time_tracker
     def save_model(self):
         '''
         Save the model into a .joblib
@@ -71,4 +78,6 @@ if __name__ == "__main__":
 
     t = Trainer(X, y)
     t.train()
-    t.save_model()
+
+    #uncomment if you want the new model savec
+    #t.save_model()
